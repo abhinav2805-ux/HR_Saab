@@ -1,0 +1,77 @@
+🚀 Next Steps
+🧠 1. Scoring Logic Enhancement
+Build a consistent scoring mechanism:
+
+Keyword match?
+
+Semantic similarity?
+
+Use embedding-based comparison (e.g., with SentenceTransformers or LLM judgment)?
+
+📊 2. Post-Interview Feedback Dashboard
+Visual analysis of interview performance:
+
+Bar graph: Scores per question.
+
+Radar chart: Skill coverage.
+
+Summary from LLM (e.g., “You did well in ML but need to strengthen ReactJS fundamentals”).
+
+💾 3. Save Interview History
+Store Q&A history in database for each user.
+
+Allow user to revisit and review.
+
+📥 4. Export/Download Report
+Export feedback as PDF report:
+
+Resume Summary
+
+Interview Questions & Answers
+
+Score & Suggestions
+
+👥 5. User Auth & Profile
+Add login/signup with Firebase/Auth0
+
+Each user has a dashboard showing:
+
+Uploaded resumes
+
+Interview attempts
+
+Improvement over time
+
+🎤 6. Voice Input (optional upgrade)
+Enable users to speak answers (using Web Speech API).
+
+Transcribe for LLM evaluation.
+
+📆 7. Mock Interview Scheduling (future feature)
+Allow users to schedule daily/weekly interviews.
+
+Gamify progress like “Streaks” or badges.
+
+
+🛠️ Tech Stack Ideas
+    Feature	              |  Tech
+
+    Resume Parser	      |  Groq + LLaMA3-70B
+    Backend	              |  Flask/FastAPI
+    Frontend	          |  React + Tailwind
+    Auth	              |  Firebase/Auth0
+    TTS	                  |  Web Speech API
+    Storage	              |  Firebase / MongoDB
+    Report Gen	          |  HTML2PDF / Puppeteer
+    Optional Voice Input  | 	Web Speech API
+
+
+
+✅ Goals
+Show Interview Score
+
+Save Chat + Score to PDF
+
+Store Interview Data in Database
+
+Integrate the DB with Flask
