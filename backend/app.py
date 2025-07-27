@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['http://localhost:5173', 'http://localhost:3000', 'https://resume-p.vercel.app/'])
 
 # Load Groq API key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
