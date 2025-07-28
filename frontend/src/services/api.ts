@@ -14,16 +14,27 @@ const api = axios.create({
 // Resume services
 export const resumeService = {
   uploadResume: async (file: File) => {
-    const formData = new FormData();
-    formData.append('resume', file);
-    
-    const response = await api.post('/parse-resume', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return response.data;
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      
+      const response = await api.post('/parse-resume', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Resume upload error:', error);
+      if (error.response) {
+        throw new Error(`Server error: ${error.response.data?.error || error.response.statusText}`);
+      } else if (error.request) {
+        throw new Error('No response from server. Please check your connection.');
+      } else {
+        throw new Error(`Request failed: ${error.message}`);
+      }
+    }
   },
 };
 
@@ -41,7 +52,13 @@ export const interviewService = {
       };
     } catch (error) {
       console.error('Error starting interview:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(`Server error: ${error.response.data?.error || error.response.statusText}`);
+      } else if (error.request) {
+        throw new Error('No response from server. Please check your connection.');
+      } else {
+        throw new Error(`Request failed: ${error.message}`);
+      }
     }
   },
   
@@ -55,18 +72,24 @@ export const interviewService = {
       });
       
       return {
-        question: response.data.message,
+        question: response.data.message,  // Map 'message' to 'question'
         interviewStatus: response.data.interviewStatus,
         feedback: response.data.feedback,
-        score: response.data.score
+        score: response.data.score,
+        lowScoreStreak: response.data.lowScoreStreak
       };
     } catch (error) {
       console.error('Error continuing interview:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(`Server error: ${error.response.data?.error || error.response.statusText}`);
+      } else if (error.request) {
+        throw new Error('No response from server. Please check your connection.');
+      } else {
+        throw new Error(`Request failed: ${error.message}`);
+      }
     }
   },
 };
-
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(

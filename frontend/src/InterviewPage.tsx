@@ -120,7 +120,11 @@ function InterviewPage() {
                 interviewMessages.filter(m => !m.isTyping)
             );
 
-            setInterviewStatus(data.interviewStatus);
+            if (!data) {
+                throw new Error('Invalid response from interview service');
+            }
+
+            setInterviewStatus(data.interviewStatus || 'in_progress');
             setQuestionsAsked(prev => prev + 1);
             setLowScoreStreak(data.lowScoreStreak || 0);
 
@@ -129,13 +133,13 @@ function InterviewPage() {
                     ...prev.slice(0, -1),
                     {
                         type: 'interviewer',
-                        content: data.question,
-                        feedback: data.feedback,
+                        content: data.question || 'Thank you for your response.',
+                        feedback: data.feedback || '',
                         score: data.score,
                         isTyping: false
                     }
                 ];
-                speakText(data.question); // TTS after interviewer response
+                speakText(data.question || 'Thank you for your response.'); // TTS after interviewer response
                 return updated;
             });
 

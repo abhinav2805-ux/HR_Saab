@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:5173', 'http://localhost:3000', 'https://resume-p.vercel.app/'])
+CORS(app, origins=['*'], supports_credentials=True)
 
 # Load Groq API key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -324,6 +324,24 @@ def index():
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "healthy", "version": "1.0.0"})
+
+@app.route('/test', methods=['GET'])
+def test_endpoint():
+    return jsonify({
+        "message": "Backend is working!",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "status": "ok",
+        "cors_enabled": True,
+        "groq_api_key_set": bool(GROQ_API_KEY)
+    })
+
+@app.route('/test', methods=['OPTIONS'])
+def test_options():
+    response = jsonify({"status": "ok"})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    return response
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

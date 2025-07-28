@@ -74,13 +74,17 @@ const InterviewPage = () => {
           // Start new interview
           const data = await interviewService.startInterview(resumeData);
 
+          if (!data || !data.interviewId) {
+            throw new Error('Invalid response from interview service');
+          }
+
           const newInterview = {
             id: interviewId,
             status: 'in_progress',
             resumeData: resumeData,
             conversationHistory: [{
               type: 'interviewer' as const,
-              content: data.question,
+              content: data.question || 'Welcome to the interview!',
               timestamp: new Date(),
               score: null
             }],

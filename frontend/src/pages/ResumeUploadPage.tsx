@@ -31,6 +31,35 @@ const ResumeUploadPage = () => {
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [interviewLoading, setInterviewLoading] = useState(false);
 
+  // Test backend connection
+  const testBackendConnection = async () => {
+    try {
+      setDebug('Testing backend connection...');
+      const response = await fetch('https://hr-saab.onrender.com/test', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Backend test response:', data);
+      setDebug(`Backend connection successful: ${data.message}`);
+      setError(null);
+    } catch (error) {
+      console.error('Backend test failed:', error);
+      setError(`Backend connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setDebug(null);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setDebug(null);
@@ -57,6 +86,11 @@ const ResumeUploadPage = () => {
     try {
       const data = await resumeService.uploadResume(file);
 
+      // Check if data exists and has the expected structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response from server');
+      }
+
       // Check for missing keys
       const keys = Object.keys(data);
       if (!data.skills || !data.experience || !data.projects) {
@@ -65,19 +99,25 @@ const ResumeUploadPage = () => {
 
       // Update state with defaults for safety
       setParsedData({
-        name: data.name || '',
+        name: data.name || 'Candidate',
         skills: {
-          skills: Array.isArray(data.skills) ? data.skills : [],
+          skills: Array.isArray(data.skills) ? data.skills : 
+                 (data.skills && typeof data.skills === 'object' && Array.isArray(data.skills.skills)) ? data.skills.skills : []
         },
         experience: Array.isArray(data.experience)
           ? data.experience.map((exp: any) => ({
-              ...exp,
-              achievements: exp.description ? [exp.description] : []
+              title: exp.title || 'Position',
+              company: exp.company || 'Company',
+              duration: exp.duration || 'Duration',
+              description: exp.description || '',
+              achievements: exp.achievements ? (Array.isArray(exp.achievements) ? exp.achievements : [exp.achievements]) : 
+                           (exp.description ? [exp.description] : [])
             }))
           : [],
         projects: Array.isArray(data.projects)
           ? data.projects.map((proj: any) => ({
-              ...proj,
+              title: proj.title || 'Project',
+              description: proj.description || 'Project description',
               link: proj.link || ""
             }))
           : []
@@ -145,6 +185,14 @@ const ResumeUploadPage = () => {
             AI Interview Simulator
           </h1>
           <p className="text-lg text-gray-400">Upload your resume and begin your virtual interview experience</p>
+          
+          {/* Test Backend Connection Button */}
+          <button
+            onClick={testBackendConnection}
+            className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors"
+          >
+            Test Backend Connection
+          </button>
         </div>
 
         {/* Error and Debug Messages */}
