@@ -316,6 +316,11 @@ Proceed with appropriate follow-up maintaining professional interview standards.
         logger.error(f"Error: {e}\n{traceback.format_exc()}")
         return jsonify({'error': 'Failed to continue interview'}), 500
 
+@app.route('/')
+def index():
+    return jsonify({"status": "ok", "message": "HR Saab API is running"})
+
+
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "healthy", "version": "1.0.0"})
