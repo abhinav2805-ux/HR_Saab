@@ -91,8 +91,11 @@ const ResumeUploadPage = () => {
         throw new Error('Invalid response from server');
       }
 
-      // Check for missing keys
+      // Check for missing keys and log for debugging
       const keys = Object.keys(data);
+      console.log('API Response keys:', keys);
+      console.log('API Response data:', data);
+      
       if (!data.skills || !data.experience || !data.projects) {
         setDebug(`Missing expected fields in API response. Received keys: ${JSON.stringify(keys)}`);
       }
@@ -268,18 +271,20 @@ const ResumeUploadPage = () => {
                   <h2 className="text-2xl font-bold text-gray-100">Technical Arsenal</h2>
                 </div>
                 <div className="space-y-4">
-                  {Object.entries(parsedData.skills).map(([category, list]) => (
-                    <div key={category} className="space-y-2">
-                      <h4 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider">{category}</h4>
+                  {parsedData.skills.skills && parsedData.skills.skills.length > 0 ? (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider">Technical Skills</h4>
                       <div className="flex flex-wrap gap-2">
-                        {list?.map((skill, i) => (
+                        {parsedData.skills.skills.map((skill, i) => (
                           <span key={i} className="px-3 py-1 bg-cyan-900/30 text-cyan-300 rounded-full text-sm border border-cyan-800/50">
                             {skill}
                           </span>
                         ))}
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="text-gray-400 text-sm italic">No skills information available</div>
+                  )}
                 </div>
               </div>
 
@@ -290,20 +295,28 @@ const ResumeUploadPage = () => {
                   <h2 className="text-2xl font-bold text-gray-100">Mission Log</h2>
                 </div>
                 <div className="space-y-6">
-                  {parsedData.experience.map((exp, index) => (
-                    <div key={index} className="border-b border-gray-700/50 pb-4 last:border-0 last:pb-0">
-                      <h3 className="text-lg font-semibold text-purple-300">{exp.title}</h3>
-                      <p className="text-sm text-gray-400 mt-1">{exp.company} • {exp.duration}</p>
-                      <ul className="mt-3 space-y-2">
-                        {exp.achievements.map((point, i) => (
-                          <li key={i} className="text-sm text-gray-300 flex items-start">
-                            <span className="text-purple-400 mr-2">▹</span>
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                  {parsedData.experience && parsedData.experience.length > 0 ? (
+                    parsedData.experience.map((exp, index) => (
+                      <div key={index} className="border-b border-gray-700/50 pb-4 last:border-0 last:pb-0">
+                        <h3 className="text-lg font-semibold text-purple-300">{exp.title || 'Position'}</h3>
+                        <p className="text-sm text-gray-400 mt-1">{exp.company || 'Company'} • {exp.duration || 'Duration'}</p>
+                        <ul className="mt-3 space-y-2">
+                          {exp.achievements && exp.achievements.length > 0 ? (
+                            exp.achievements.map((point, i) => (
+                              <li key={i} className="text-sm text-gray-300 flex items-start">
+                                <span className="text-purple-400 mr-2">▹</span>
+                                {point}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-sm text-gray-400 italic">No achievements listed</li>
+                          )}
+                        </ul>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-400 text-sm italic">No experience information available</div>
+                  )}
                 </div>
               </div>
 
@@ -314,22 +327,26 @@ const ResumeUploadPage = () => {
                   <h2 className="text-2xl font-bold text-gray-100">Project Database</h2>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
-                  {parsedData.projects.map((project, index) => (
-                    <div key={index} className="bg-gray-900/50 p-6 rounded-xl border border-gray-700/50">
-                      <h3 className="text-lg font-semibold text-pink-300">{project.title}</h3>
-                      <p className="mt-2 text-sm text-gray-300">{project.description}</p>
-                      {project.link && (
-                        <a
-                          href={project.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-flex items-center text-sm text-pink-400 hover:text-pink-300 transition-colors"
-                        >
-                          View Project <span className="ml-1">→</span>
-                        </a>
-                      )}
-                    </div>
-                  ))}
+                  {parsedData.projects && parsedData.projects.length > 0 ? (
+                    parsedData.projects.map((project, index) => (
+                      <div key={index} className="bg-gray-900/50 p-6 rounded-xl border border-gray-700/50">
+                        <h3 className="text-lg font-semibold text-pink-300">{project.title || 'Project'}</h3>
+                        <p className="mt-2 text-sm text-gray-300">{project.description || 'Project description'}</p>
+                        {project.link && (
+                          <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-4 inline-flex items-center text-sm text-pink-400 hover:text-pink-300 transition-colors"
+                          >
+                            View Project <span className="ml-1">→</span>
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="md:col-span-2 text-gray-400 text-sm italic">No projects information available</div>
+                  )}
                 </div>
               </div>
             </div>

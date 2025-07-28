@@ -80,8 +80,32 @@ def parse_resume():
             resume_text = resume_text[:max_text_length]
 
         prompt = f"""
-Extract the following information from this resume text and return only the JSON object:
-Keys: "name", "skills", "experience", and "projects".
+You are an expert resume parsing system. Extract information from the following resume text and format it as a valid JSON object.
+Adhere strictly to this JSON schema. Do not add any extra text or explanations.
+
+Schema:
+{{
+  "name": "string",
+  "skills": {{
+    "skills": ["string", "string", ...]
+  }},
+  "experience": [
+    {{
+      "title": "string",
+      "company": "string",
+      "duration": "string",
+      "description": "string",
+      "achievements": ["string", "string", ...]
+    }}
+  ],
+  "projects": [
+    {{
+      "title": "string",
+      "description": "string",
+      "link": "string"
+    }}
+  ]
+}}
 
 Resume Text:
 \"\"\"
@@ -93,24 +117,62 @@ Resume Text:
         chat_completion = groq_client.chat.completions.create(
             model="llama3-70b-8192",
             messages=[
-                {"role": "system", "content": "You are an expert at parsing resumes and returning structured JSON output."},
+                {"role": "system", "content": "You are an expert resume parsing system. You must return ONLY valid JSON that strictly follows the provided schema. Do not include any explanatory text, markdown formatting, or additional content outside the JSON object."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3
+            temperature=0.1
         )
 
         content = chat_completion.choices[0].message.content
+        
+        # Log the raw response for debugging
+        logger.debug(f"Raw AI response: {content}")
+        
+        # Clean the response more thoroughly
         cleaned = re.sub(r"^```(?:json)?|```$", "", content.strip(), flags=re.MULTILINE)
         cleaned = re.sub(r'^.*?\{', '{', cleaned, flags=re.DOTALL)
+        cleaned = re.sub(r'\}.*$', '}', cleaned, flags=re.DOTALL)
+        
+        # Additional cleaning for common AI response patterns
+        cleaned = re.sub(r'^Here is the JSON.*?\{', '{', cleaned, flags=re.DOTALL | re.IGNORECASE)
+        cleaned = re.sub(r'^The extracted information.*?\{', '{', cleaned, flags=re.DOTALL | re.IGNORECASE)
+        
+        # Ensure we have valid JSON structure
+        if not cleaned.strip().startswith('{') or not cleaned.strip().endswith('}'):
+            logger.error(f"Cleaned content does not appear to be valid JSON: {cleaned}")
+            return jsonify({"error": "AI response format is invalid"}), 500
 
         try:
-                parsed = json.loads(cleaned)
-                return jsonify(parsed)
+            parsed = json.loads(cleaned)
+            
+            # Validate the parsed data structure
+            if not isinstance(parsed, dict):
+                logger.error(f"Parsed data is not a dictionary: {type(parsed)}")
+                return jsonify({"error": "Invalid data structure returned by AI"}), 500
+            
+            # Ensure required fields exist with proper structure
+            if 'name' not in parsed:
+                parsed['name'] = 'Candidate'
+            
+            if 'skills' not in parsed or not isinstance(parsed['skills'], dict):
+                parsed['skills'] = {'skills': []}
+            elif 'skills' not in parsed['skills'] or not isinstance(parsed['skills']['skills'], list):
+                parsed['skills']['skills'] = []
+            
+            if 'experience' not in parsed or not isinstance(parsed['experience'], list):
+                parsed['experience'] = []
+            
+            if 'projects' not in parsed or not isinstance(parsed['projects'], list):
+                parsed['projects'] = []
+            
+            logger.info(f"Successfully parsed resume for: {parsed.get('name', 'Unknown')}")
+            return jsonify(parsed)
+            
         except json.JSONDecodeError as e:
-                logger.error(f"JSON decoding error: {e}")
-                return jsonify({"error": "Failed to parse resume data."}), 500
-        else:
-            return jsonify({"error": "API did not return results."}), 500
+            # Log the problematic string that caused the error!
+            logger.error(f"JSON decoding error for content: {cleaned}") 
+            logger.error(f"Error details: {e}")
+            return jsonify({"error": "Failed to parse resume data from AI response."}), 500
 
     except Exception as e:
         logger.error(f"Error: {e}\n{traceback.format_exc()}")
