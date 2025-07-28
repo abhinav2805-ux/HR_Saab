@@ -1,17 +1,37 @@
 import  { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, Briefcase, Code, FolderGit2, AlertCircle, Info, MessageSquare } from 'lucide-react';
+import { resumeService, interviewService } from '../services/api';
+
+interface ParsedData {
+  name: string;
+  skills: {
+    skills: string[];
+  };
+  experience: Array<{
+    title: string;
+    company: string;
+    duration: string;
+    description: string;
+    achievements: string[];
+  }>;
+  projects: Array<{
+    title: string;
+    description: string;
+    link: string;
+  }>;
+}
 
 const ResumeUploadPage = () => {
   const navigate = useNavigate();
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [debug, setDebug] = useState(null);
-  const [parsedData, setParsedData] = useState(null);
+  const [debug, setDebug] = useState<string | null>(null);
+  const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [interviewLoading, setInterviewLoading] = useState(false);
 
-  const handleFileChange = (e: { target: { files: any[]; }; }) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setDebug(null);
     setParsedData(null);
@@ -25,7 +45,7 @@ const ResumeUploadPage = () => {
     }
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {return;}
 
@@ -34,20 +54,8 @@ const ResumeUploadPage = () => {
     setDebug(null);
     setParsedData(null);
 
-    const formData = new FormData();
-    formData.append('resume', file);
-
     try {
-      const response = await fetch('https://hr-saab.onrender.com/parse-resume', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to parse resume');
-      }
+      const data = await resumeService.uploadResume(file);
 
       // Check for missing keys
       const keys = Object.keys(data);
@@ -62,13 +70,13 @@ const ResumeUploadPage = () => {
           skills: Array.isArray(data.skills) ? data.skills : [],
         },
         experience: Array.isArray(data.experience)
-          ? data.experience.map((exp) => ({
+          ? data.experience.map((exp: any) => ({
               ...exp,
               achievements: exp.description ? [exp.description] : []
             }))
           : [],
         projects: Array.isArray(data.projects)
-          ? data.projects.map((proj) => ({
+          ? data.projects.map((proj: any) => ({
               ...proj,
               link: proj.link || ""
             }))
@@ -95,25 +103,9 @@ const ResumeUploadPage = () => {
     try {
       console.log('Starting interview with data:', parsedData); // Debug log
       
-      const response = await fetch('https://hr-saab.onrender.com/start-interview', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          resumeData: parsedData
-        }),
-      });
-  
-      const data = await response.json();
+      const data = await interviewService.startInterview(parsedData);
       console.log('API Response:', data); // Debug log
       
-      if (!response.ok) {
-        const errorMsg = data.error || 'Failed to start interview';
-        console.error('API Error:', errorMsg); // Debug log
-        throw new Error(errorMsg);
-      }
-  
       if (!data.interviewId) {
         throw new Error('Missing interviewId in response');
       }
@@ -124,7 +116,7 @@ const ResumeUploadPage = () => {
       
       // Prepare navigation state
       const navigationState = {
-        initialMessage: data.message,
+        initialMessage: data.question,
         interviewStatus: data.interviewStatus,
         interviewId: data.interviewId // Include interviewId in state as backup
       };

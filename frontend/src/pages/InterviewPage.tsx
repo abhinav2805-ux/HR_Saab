@@ -72,19 +72,7 @@ const InterviewPage = () => {
           });
         } else {
           // Start new interview
-          const response = await fetch('https://hr-saab.onrender.com/start-interview', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ resumeData }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to start interview');
-          }
-
-          const data = await response.json();
+          const data = await interviewService.startInterview(resumeData);
 
           const newInterview = {
             id: interviewId,
@@ -92,7 +80,7 @@ const InterviewPage = () => {
             resumeData: resumeData,
             conversationHistory: [{
               type: 'interviewer' as const,
-              content: data.message,
+              content: data.question,
               timestamp: new Date(),
               score: null
             }],
@@ -195,28 +183,16 @@ const InterviewPage = () => {
     setIsTyping(true);
     
     try {
-      const response = await fetch('https://hr-saab.onrender.com/continue-interview', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          interviewId: interviewId,
-          userResponse: userInput,
-          resumeData: JSON.parse(localStorage.getItem('resumeData') || '{}'),
-          conversationHistory: interview.conversationHistory
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to get response from interviewer');
-      }
-  
-      const data = await response.json();
+      const data = await interviewService.continueInterview(
+        interviewId!,
+        userInput,
+        JSON.parse(localStorage.getItem('resumeData') || '{}'),
+        interview.conversationHistory
+      );
       
       const botResponse: Message = {
         type: 'interviewer',
-        content: data.message,
+        content: data.question,
         timestamp: new Date(),
         score: data.score || interview.currentScore
       };

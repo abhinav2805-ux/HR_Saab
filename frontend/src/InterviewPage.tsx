@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Briefcase, Award, Send, MessageSquare, ArrowLeft, X, List, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
 import './index.css'
+import { interviewService } from '../services/api';
 
 interface ParsedResume {
     name?: string;
@@ -112,20 +113,12 @@ function InterviewPage() {
         try {
             await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
-            const response = await fetch('https://hr-saab.onrender.com/continue-interview', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    resumeData: parsedData,
-                    interviewId,
-                    userResponse,
-                    conversationHistory: interviewMessages.filter(m => !m.isTyping)
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) throw new Error(data.error || 'Failed to continue interview');
+            const data = await interviewService.continueInterview(
+                interviewId,
+                userResponse,
+                parsedData,
+                interviewMessages.filter(m => !m.isTyping)
+            );
 
             setInterviewStatus(data.interviewStatus);
             setQuestionsAsked(prev => prev + 1);
@@ -136,13 +129,13 @@ function InterviewPage() {
                     ...prev.slice(0, -1),
                     {
                         type: 'interviewer',
-                        content: data.message,
+                        content: data.question,
                         feedback: data.feedback,
                         score: data.score,
                         isTyping: false
                     }
                 ];
-                speakText(data.message); // TTS after interviewer response
+                speakText(data.question); // TTS after interviewer response
                 return updated;
             });
 
