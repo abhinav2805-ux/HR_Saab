@@ -84,10 +84,13 @@ const ResumeUploadPage = () => {
     setParsedData(null);
 
     try {
+      console.log('Uploading file:', file.name, file.size);
       const data = await resumeService.uploadResume(file);
+      console.log('Raw API response:', data);
 
       // Check if data exists and has the expected structure
       if (!data || typeof data !== 'object') {
+        console.error('Invalid data structure:', data);
         throw new Error('Invalid response from server');
       }
 

@@ -24,11 +24,20 @@ export const resumeService = {
         },
       });
       
+      console.log('API Response:', response);
+      console.log('Response data:', response.data);
       return response.data;
     } catch (error) {
       console.error('Resume upload error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        request: error.request
+      });
+      
       if (error.response) {
-        throw new Error(`Server error: ${error.response.data?.error || error.response.statusText}`);
+        const errorMessage = error.response.data?.error || error.response.statusText || 'Unknown server error';
+        throw new Error(`Server error: ${errorMessage}`);
       } else if (error.request) {
         throw new Error('No response from server. Please check your connection.');
       } else {
@@ -93,7 +102,7 @@ export const interviewService = {
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => response, // Return the full response, not just data
   (error) => {
     if (error.response) {
       // Server responded with a status code outside 2xx

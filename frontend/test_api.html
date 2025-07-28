@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testBackend()">Test Backend Connection</button>
+    <button onclick="testParse()">Test Resume Parsing</button>
+    <div id="result"></div>
+
+    <script>
+        const API_BASE_URL = 'https://hr-saab.onrender.com';
+
+        async function testBackend() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/test`);
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Backend Test Result:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Backend Test Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testParse() {
+            try {
+                const sampleResume = `
+John Doe
+Software Engineer
+john.doe@email.com
+
+SKILLS
+JavaScript, Python, React, Node.js
+
+EXPERIENCE
+Software Engineer | TechCorp | 2022-Present
+• Built web applications
+
+PROJECTS
+E-commerce Platform | github.com/johndoe/ecommerce
+• Full-stack application
+                `;
+
+                const response = await fetch(`${API_BASE_URL}/test-parse`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ resume_text: sampleResume })
+                });
+
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Parse Test Result:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Parse Test Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
