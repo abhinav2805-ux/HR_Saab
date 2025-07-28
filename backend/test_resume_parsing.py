@@ -67,11 +67,11 @@ def test_resume_parsing():
     """Test resume parsing with sample data"""
     print("\n📄 Testing resume parsing...")
     
-    # Create a mock file-like object
+    # Create a mock DOCX file-like object
     class MockFile:
         def __init__(self, content):
             self.content = content
-            self.filename = "test_resume.txt"
+            self.filename = "test_resume.docx"
         
         def read(self):
             return self.content.encode('utf-8')
@@ -80,7 +80,7 @@ def test_resume_parsing():
     
     try:
         # Test the parse-resume endpoint
-        files = {'resume': ('test_resume.txt', mock_file.read(), 'text/plain')}
+        files = {'resume': ('test_resume.docx', mock_file.read(), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')}
         response = requests.post(f"{BACKEND_URL}/parse-resume", files=files, timeout=30)
         
         print(f"Response status: {response.status_code}")

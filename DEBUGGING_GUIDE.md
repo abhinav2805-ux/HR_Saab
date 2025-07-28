@@ -18,6 +18,7 @@ This guide will help you troubleshoot issues with the resume parsing functionali
 - ✅ **Fixed**: Improved prompt with strict JSON schema
 - ✅ **Fixed**: Added better error logging to see the exact AI response
 - ✅ **Fixed**: Enhanced JSON cleaning and validation
+- ✅ **Fixed**: Improved JSON extraction logic to handle complete objects
 
 **Debug Steps**:
 1. Check the backend logs for the exact AI response
@@ -67,10 +68,11 @@ This guide will help you troubleshoot issues with the resume parsing functionali
 
 ### 2. Backend Debugging
 
-**Test Script**:
+**Test Scripts**:
 ```bash
 cd backend
-python test_resume_parsing.py
+python test_ai_response.py  # Test AI response directly
+python test_fix.py          # Test the fix with backend
 ```
 
 **Manual API Testing**:
