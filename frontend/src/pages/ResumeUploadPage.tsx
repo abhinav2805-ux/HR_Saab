@@ -38,7 +38,7 @@ const ResumeUploadPage = () => {
     formData.append('resume', file);
 
     try {
-      const response = await fetch('http://localhost:5000/parse-resume', {
+      const response = await fetch('https://hr-saab.onrender.com/parse-resume', {
         method: 'POST',
         body: formData,
       });
@@ -95,7 +95,7 @@ const ResumeUploadPage = () => {
     try {
       console.log('Starting interview with data:', parsedData); // Debug log
       
-      const response = await fetch('http://localhost:5000/start-interview', {
+      const response = await fetch('https://hr-saab.onrender.com/start-interview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

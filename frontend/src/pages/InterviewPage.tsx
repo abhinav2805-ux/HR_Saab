@@ -72,7 +72,7 @@ const InterviewPage = () => {
           });
         } else {
           // Start new interview
-          const response = await fetch('http://localhost:5000/start-interview', {
+          const response = await fetch('https://hr-saab.onrender.com/start-interview', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -195,7 +195,7 @@ const InterviewPage = () => {
     setIsTyping(true);
     
     try {
-      const response = await fetch('http://localhost:5000/continue-interview', {
+      const response = await fetch('https://hr-saab.onrender.com/continue-interview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,7 +266,7 @@ const InterviewPage = () => {
       ];
   
       // Send to backend
-      const response = await fetch('http://localhost:5000/end-interview', {
+      const response = await fetch('https://hr-saab.onrender.com/end-interview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

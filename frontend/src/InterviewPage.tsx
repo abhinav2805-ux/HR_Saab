@@ -112,7 +112,7 @@ function InterviewPage() {
         try {
             await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
-            const response = await fetch('http://localhost:5000/continue-interview', {
+            const response = await fetch('https://hr-saab.onrender.com/continue-interview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
