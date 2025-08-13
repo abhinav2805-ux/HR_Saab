@@ -99,6 +99,11 @@ const ResumeUploadPage = () => {
       console.log('API Response keys:', keys);
       console.log('API Response data:', data);
       
+      // Check if this is an error response
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       if (!data.skills || !data.experience || !data.projects) {
         setDebug(`Missing expected fields in API response. Received keys: ${JSON.stringify(keys)}`);
       }
@@ -201,20 +206,46 @@ const ResumeUploadPage = () => {
           </button>
         </div>
 
-        {/* Error and Debug Messages */}
-        {error && (
-          <div className="mb-6 bg-red-900/50 border border-red-500/50 rounded-lg p-4 flex items-start backdrop-blur-sm">
-            <AlertCircle className="w-5 h-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
-            <p className="text-red-400 text-sm">{error}</p>
+        {/* Debug Section */}
+        <div className="mb-8">
+          <div className="max-w-xl mx-auto">
+            <button
+              onClick={testBackendConnection}
+              className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors mb-4"
+            >
+              🔍 Test Backend Connection
+            </button>
+            
+            {debug && (
+              <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 mb-4">
+                <div className="flex items-center mb-2">
+                  <Info className="w-5 h-5 text-blue-400 mr-2" />
+                  <span className="text-blue-400 font-medium">Debug Info</span>
+                </div>
+                <p className="text-blue-300 text-sm">{debug}</p>
+              </div>
+            )}
+            
+            {error && (
+              <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4">
+                <div className="flex items-center mb-2">
+                  <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
+                  <span className="text-red-400 font-medium">Error</span>
+                </div>
+                <p className="text-red-300 text-sm">{error}</p>
+                <div className="mt-3 text-xs text-red-400">
+                  <p>💡 Troubleshooting tips:</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>Check if your resume file is not corrupted</li>
+                    <li>Ensure the file is in PDF or DOCX format</li>
+                    <li>Try with a different resume file</li>
+                    <li>Check if the backend is running properly</li>
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-
-        {debug && (
-          <div className="mb-6 bg-blue-900/50 border border-blue-500/50 rounded-lg p-4 flex items-start backdrop-blur-sm">
-            <Info className="w-5 h-5 text-blue-400 mr-2 flex-shrink-0 mt-0.5" />
-            <p className="text-blue-400 text-sm">{debug}</p>
-          </div>
-        )}
+        </div>
 
         {/* Upload Form */}
         <form onSubmit={handleSubmit} className="mb-12">

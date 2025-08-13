@@ -59,6 +59,11 @@ def extract_text_from_docx(file_storage):
 @app.route('/parse-resume', methods=['POST'])
 def parse_resume():
     try:
+        # Check if API key is configured
+        if not GROQ_API_KEY:
+            logger.error("GROQ_API_KEY is not set in environment variables.")
+            return jsonify({"error": "API key configuration error on server"}), 500
+
         if 'resume' not in request.files:
             return jsonify({"error": "No resume file provided"}), 400
 
@@ -113,7 +118,7 @@ Resume Text:
 \"\"\"
 """
 
-        # Replace direct API call with Groq SDK
+        # Call Groq API
         chat_completion = groq_client.chat.completions.create(
             model="llama3-70b-8192",
             messages=[
@@ -206,6 +211,7 @@ Resume Text:
                         proj['link'] = ''
             
             logger.info(f"Successfully parsed resume for: {parsed.get('name', 'Unknown')}")
+            # Return the parsed data directly (not wrapped in a data field)
             return jsonify(parsed)
             
         except json.JSONDecodeError as e:
