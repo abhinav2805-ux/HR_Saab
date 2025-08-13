@@ -1,6 +1,6 @@
 import  { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, FileText, Briefcase, Code, FolderGit2, AlertCircle, Info, MessageSquare } from 'lucide-react';
+import { Upload, FileText, Briefcase, Code, FolderGit2, AlertCircle, MessageSquare } from 'lucide-react';
 import { resumeService, interviewService } from '../services/api';
 
 interface ParsedData {
@@ -27,42 +27,11 @@ const ResumeUploadPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [debug, setDebug] = useState<string | null>(null);
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [interviewLoading, setInterviewLoading] = useState(false);
 
-  // Test backend connection
-  const testBackendConnection = async () => {
-    try {
-      setDebug('Testing backend connection...');
-      const response = await fetch('https://hr-saab.onrender.com/test', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Backend test response:', data);
-      setDebug(`Backend connection successful: ${data.message}`);
-      setError(null);
-    } catch (error) {
-      console.error('Backend test failed:', error);
-      setError(`Backend connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setDebug(null);
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    setDebug(null);
     setParsedData(null);
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -80,32 +49,19 @@ const ResumeUploadPage = () => {
 
     setLoading(true);
     setError(null);
-    setDebug(null);
     setParsedData(null);
 
     try {
-      console.log('Uploading file:', file.name, file.size);
       const data = await resumeService.uploadResume(file);
-      console.log('Raw API response:', data);
 
       // Check if data exists and has the expected structure
       if (!data || typeof data !== 'object') {
-        console.error('Invalid data structure:', data);
         throw new Error('Invalid response from server');
       }
 
-      // Check for missing keys and log for debugging
-      const keys = Object.keys(data);
-      console.log('API Response keys:', keys);
-      console.log('API Response data:', data);
-      
       // Check if this is an error response
       if (data.error) {
         throw new Error(data.error);
-      }
-      
-      if (!data.skills || !data.experience || !data.projects) {
-        setDebug(`Missing expected fields in API response. Received keys: ${JSON.stringify(keys)}`);
       }
 
       // Update state with defaults for safety
@@ -152,10 +108,7 @@ const ResumeUploadPage = () => {
     setError(null);
   
     try {
-      console.log('Starting interview with data:', parsedData); // Debug log
-      
       const data = await interviewService.startInterview(parsedData);
-      console.log('API Response:', data); // Debug log
       
       if (!data.interviewId) {
         throw new Error('Missing interviewId in response');
@@ -163,17 +116,13 @@ const ResumeUploadPage = () => {
   
       // Store parsed resume data
       localStorage.setItem('resumeData', JSON.stringify(parsedData));
-      console.log('Stored resumeData in localStorage'); // Debug log
       
       // Prepare navigation state
       const navigationState = {
         initialMessage: data.question,
         interviewStatus: data.interviewStatus,
-        interviewId: data.interviewId // Include interviewId in state as backup
+        interviewId: data.interviewId
       };
-      
-      console.log('Navigating to:', `/interview/${data.interviewId}`); // Debug log
-      console.log('With state:', navigationState); // Debug log
       
       // Navigate to interview page
       navigate(`/interview/${data.interviewId}`, { 
@@ -196,56 +145,20 @@ const ResumeUploadPage = () => {
             AI Interview Simulator
           </h1>
           <p className="text-lg text-gray-400">Upload your resume and begin your virtual interview experience</p>
-          
-          {/* Test Backend Connection Button */}
-          <button
-            onClick={testBackendConnection}
-            className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors"
-          >
-            Test Backend Connection
-          </button>
         </div>
 
-        {/* Debug Section */}
-        <div className="mb-8">
-          <div className="max-w-xl mx-auto">
-            <button
-              onClick={testBackendConnection}
-              className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors mb-4"
-            >
-              🔍 Test Backend Connection
-            </button>
-            
-            {debug && (
-              <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 mb-4">
-                <div className="flex items-center mb-2">
-                  <Info className="w-5 h-5 text-blue-400 mr-2" />
-                  <span className="text-blue-400 font-medium">Debug Info</span>
-                </div>
-                <p className="text-blue-300 text-sm">{debug}</p>
+        {/* Error Display */}
+        {error && (
+          <div className="mb-8 max-w-xl mx-auto">
+            <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
+                <span className="text-red-400 font-medium">Error</span>
               </div>
-            )}
-            
-            {error && (
-              <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
-                  <span className="text-red-400 font-medium">Error</span>
-                </div>
-                <p className="text-red-300 text-sm">{error}</p>
-                <div className="mt-3 text-xs text-red-400">
-                  <p>💡 Troubleshooting tips:</p>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>Check if your resume file is not corrupted</li>
-                    <li>Ensure the file is in PDF or DOCX format</li>
-                    <li>Try with a different resume file</li>
-                    <li>Check if the backend is running properly</li>
-                  </ul>
-                </div>
-              </div>
-            )}
+              <p className="text-red-300 text-sm">{error}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Upload Form */}
         <form onSubmit={handleSubmit} className="mb-12">
